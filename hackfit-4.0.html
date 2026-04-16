@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HackFit 4.0</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #a3ff00;
+      --cyan: #00e5ff;
+      --dark: #050a05;
+      --dark2: #0a120a;
+      --card-bg: #0d1a0d;
+      --card-border: #1a2e1a;
+      --text: #c8d8c8;
+      --muted: #5a7a5a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ===== LOADER ===== */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+    .loader-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,255,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,0,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .loader-corner {
+      position: absolute;
+      width: 40px; height: 40px;
+      border-color: #0f0;
+      border-style: solid;
+      opacity: 0.4;
+    }
+    .loader-corner.tl { top: 20px; left: 20px; border-width: 2px 0 0 2px; }
+    .loader-corner.tr { top: 20px; right: 20px; border-width: 2px 2px 0 0; }
+    .loader-corner.bl { bottom: 20px; left: 20px; border-width: 0 0 2px 2px; }
+    .loader-corner.br { bottom: 20px; right: 20px; border-width: 0 2px 2px 0; }
+    .loader-logo {
+      font-size: 60px;
+      z-index: 1;
+      animation: spin3d 3s linear infinite;
+    }
+    @keyframes spin3d {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
+    }
+    .loader-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a3ff00, #00e5ff, #a3ff00);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 2s linear infinite;
+      z-index: 1;
+    }
+    @keyframes shimmer {
+      0% { background-position: 0%; }
+      100% { background-position: 200%; }
+    }
+    .loader-sdk {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--green);
+      letter-spacing: 3px;
+      z-index: 1;
+    }
+    .loader-bar-wrap {
+      width: 280px;
+      height: 3px;
+      background: #1a1a1a;
+      border-radius: 2px;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .loader-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+      width: 0%;
+      transition: width 0.1s;
+      box-shadow: 0 0 8px var(--green);
+    }
+    .loader-pct {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--green);
+      letter-spacing: 2px;
+      z-index: 1;
+    }
+    .loader-dots {
+      display: flex; gap: 10px; z-index: 1;
+    }
+    .loader-dots span {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: dotpulse 1s ease-in-out infinite;
+    }
+    .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotpulse {
+      0%, 100% { background: var(--muted); }
+      50% { background: var(--green); }
+    }
+
+    /* ===== NAVBAR ===== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 48px;
+      background: rgba(5,10,5,0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(163,255,0,0.08);
+    }
+    .nav-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 2px;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: 2px;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--green); }
+    .nav-cta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      color: #fff;
+      background: transparent;
+      border: 1px solid var(--green);
+      padding: 10px 22px;
+      text-decoration: none;
+      transition: all 0.2s;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .nav-cta:hover {
+      background: rgba(163,255,0,0.1);
+      box-shadow: 0 0 15px rgba(163,255,0,0.2);
+    }
+
+    /* ===== HERO ===== */
+    #home {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding-top: 80px;
+    }
+    .matrix-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    canvas#matrix {
+      position: absolute;
+      inset: 0;
+      opacity: 0.35;
+    }
+    .hero-gradient {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 40%, rgba(0,80,0,0.3) 0%, transparent 70%);
+    }
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      width: 100%;
+      padding: 0 20px;
+    }
+    .hero-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(4rem, 12vw, 9rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -2px;
+      margin-bottom: 20px;
+    }
+    .hero-title .hack {
+      color: var(--green);
+      text-shadow: 0 0 40px rgba(163,255,0,0.4);
+      font-style: italic;
+    }
+    .hero-title .fit {
+      color: #fff;
+    }
+    .hero-title .ver {
+      color: var(--cyan);
+    }
+    .hero-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 6px;
+      color: var(--text);
+      margin-bottom: 50px;
+    }
+    .hero-cards {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .hero-card {
+      background: rgba(10,20,10,0.8);
+      border: 1px solid rgba(163,255,0,0.2);
+      border-radius: 10px;
+      padding: 28px 40px;
+      min-width: 240px;
+      text-align: left;
+    }
+    .hero-card-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--green);
+      margin-bottom: 10px;
+    }
+    .hero-card-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+    .hero-card-value.cyan { color: var(--cyan); }
+    .hero-card-dates {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .hero-card-dates .nums {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: -2px;
+    }
+    .hero-card-dates .month {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      color: var(--text);
+    }
+
+    /* ===== SECTION SHARED ===== */
+    section {
+      position: relative;
+      padding: 100px 48px;
+    }
+    .section-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      color: var(--green);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-label::before {
+      content: '•';
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      display: inline-block;
+      font-size: 0;
+      box-shadow: 0 0 6px var(--green);
+    }
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    /* ===== POLYGON NETWORK BG ===== */
+    .poly-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      opacity: 0.25;
+    }
+    canvas.poly-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ===== ABOUT ===== */
+    #about {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+    }
+    .about-inner {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .about-left {}
+    .about-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2.5rem, 5vw, 3.8rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 30px;
+      text-transform: uppercase;
+    }
+    .about-text {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      margin-bottom: 15px;
+    }
+    .about-badges {
+      display: flex;
+      gap: 12px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(163,255,0,0.08);
+      border: 1px solid rgba(163,255,0,0.2);
+      border-radius: 50px;
+      padding: 8px 18px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      color: #fff;
+    }
+    .badge-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      flex-shrink: 0;
+    }
+    .badge-dot.cyan { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+    .about-terminal {
+      background: #0d1a0d;
+      border: 1px solid rgba(163,255,0,0.3);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(163,255,0,0.15);
+    }
+    .terminal-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      color: #fff;
+    }
+    .terminal-btn {
+      width: 60px; height: 20px;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      border-radius: 3px;
+    }
+    .terminal-line {
+      padding: 14px 20px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--green);
+      border-bottom: 1px solid rgba(163,255,0,0.06);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .terminal-line .hash { color: var(--muted); }
+    .terminal-line.typing::after {
+      content: '|';
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    .terminal-progress {
+      padding: 14px 20px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--green);
+    }
+
+    /* ===== SCANLINE DIVIDER ===== */
+    .scanline-divider {
+      width: 100%;
+      height: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    .scanline-divider::before {
+      content: '// SYS.INIT';
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+      position: absolute;
+      left: 48px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .scanline-divider::after {
+      content: 'HACKFIT.2026';
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--muted);
+      letter-spacing: 3px;
+      position: absolute;
+      right: 48px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .scanline-line {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--green), var(--cyan), var(--green), transparent);
+      border-radius: 2px;
+    }
+    .scanline-dot {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    /* ===== PRIZES ===== */
+    #prizes {
+      text-align: center;
+      background: var(--dark2);
+    }
+    .prizes-label {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 900;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin-bottom: 70px;
+      font-style: italic;
+    }
+    .prizes-podium {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .prize-card {
+      border-radius: 12px;
+      padding: 30px 30px 40px;
+      min-width: 220px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+    }
+    .prize-card.first {
+      background: radial-gradient(ellipse at 50% 0%, rgba(163,255,0,0.12) 0%, rgba(10,25,10,0.9) 70%);
+      border: 1px solid rgba(163,255,0,0.5);
+      min-width: 260px;
+      box-shadow: 0 0 40px rgba(163,255,0,0.1), inset 0 0 40px rgba(163,255,0,0.05);
+    }
+    .prize-card.second {
+      background: radial-gradient(ellipse at 50% 0%, rgba(163,255,0,0.08) 0%, rgba(10,25,10,0.9) 70%);
+      border: 1px solid rgba(163,255,0,0.3);
+    }
+    .prize-card.third {
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,200,0,0.08) 0%, rgba(10,15,10,0.9) 70%);
+      border: 1px solid rgba(200,160,0,0.4);
+    }
+    .trophy-icon {
+      font-size: 2rem;
+      filter: drop-shadow(0 0 10px currentColor);
+    }
+    .trophy-icon.green { color: var(--green); }
+    .trophy-icon.gold { color: #c8a000; }
+    .prize-rank {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+    }
+    .prize-rank.green { color: var(--green); }
+    .prize-rank.gold { color: #c8a000; }
+    .prize-amount {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.5rem;
+      font-weight: 700;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .prize-amount.green { color: var(--green); text-shadow: 0 0 20px rgba(163,255,0,0.4); }
+    .prize-amount.gold { color: #c8a000; text-shadow: 0 0 20px rgba(200,160,0,0.3); }
+
+    /* ===== PROBLEM STATEMENTS ===== */
+    #about-tracks {
+      background: var(--dark);
+    }
+    .tracks-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .tracks-label-sm {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 6px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .tracks-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .tracks-sub {
+      font-size: 1rem;
+      color: var(--muted);
+    }
+    .track-card {
+      background: rgba(10,20,10,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+      transition: border-color 0.3s;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .track-card:hover { border-color: rgba(163,255,0,0.3); }
+    .track-num {
+      width: 38px; height: 38px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #fff;
+      float: left;
+      margin-right: 20px;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .track-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+    .track-desc {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 24px;
+      clear: both;
+    }
+    .track-tags {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .track-tag {
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50px;
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .track-footer-text {
+      text-align: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 6px;
+      color: var(--muted);
+      margin-top: 60px;
+    }
+
+    /* ===== SCHEDULE ===== */
+    #schedule {
+      background: var(--dark2);
+      min-height: 100vh;
+    }
+    .schedule-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    .schedule-label-sm {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 6px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .schedule-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      color: #fff;
+    }
+    .timeline {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .timeline-line {
+      position: absolute;
+      left: 50%;
+      top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent, rgba(163,255,0,0.3), transparent);
+      transform: translateX(-50%);
+    }
+    .timeline-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 80px;
+      gap: 40px;
+      position: relative;
+    }
+    .timeline-item.left { flex-direction: row; }
+    .timeline-item.right { flex-direction: row-reverse; }
+    .timeline-content {
+      flex: 1;
+    }
+    .timeline-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+      flex-shrink: 0;
+      z-index: 1;
+    }
+    .timeline-card {
+      background: rgba(10,20,10,0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 24px 28px;
+      position: relative;
+    }
+    .timeline-phase {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .timeline-phase-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-bottom: 10px;
+    }
+    .timeline-phase-title.green { color: var(--green); }
+    .timeline-phase-desc {
+      font-size: 0.9rem;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .timeline-closed {
+      position: absolute;
+      top: -12px; right: 16px;
+      background: rgba(255,255,255,0.08);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    .timeline-empty { flex: 1; }
+
+    /* ===== FAQ ===== */
+    #faq {
+      position: relative;
+      min-height: 60vh;
+    }
+    .faq-bg-img {
+      position: absolute;
+      inset: 0;
+      background: var(--dark);
+      z-index: 0;
+    }
+    .faq-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .faq-label-sm {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      color: var(--green);
+      margin-bottom: 20px;
+    }
+    .faq-label-sm svg { width: 16px; height: 16px; }
+    .faq-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 900;
+      color: var(--green);
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .faq-sub {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-bottom: 50px;
+      line-height: 1.6;
+    }
+    .faq-list {
+      background: rgba(10,20,10,0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      text-align: left;
+    }
+    .faq-item {
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 22px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      color: var(--green);
+      text-align: left;
+      gap: 20px;
+    }
+    .faq-q:hover { background: rgba(163,255,0,0.04); }
+    .faq-chevron {
+      width: 16px; height: 16px;
+      flex-shrink: 0;
+      transition: transform 0.3s;
+      color: var(--green);
+    }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+      padding: 0 28px;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text);
+    }
+    .faq-item.open .faq-a {
+      max-height: 200px;
+      padding: 0 28px 22px;
+    }
+
+    /* ===== CONTACT ===== */
+    #contact {
+      background: var(--dark2);
+    }
+    .contact-header { margin-bottom: 50px; }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.5fr;
+      gap: 20px;
+      align-items: start;
+    }
+    .contact-card {
+      background: rgba(10,20,10,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 28px;
+      transition: border-color 0.3s;
+    }
+    .contact-card:hover { border-color: rgba(163,255,0,0.3); }
+    .contact-name {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .contact-divider {
+      width: 30px; height: 2px;
+      background: var(--green);
+      margin-bottom: 12px;
+    }
+    .contact-role {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+    .contact-phone {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--cyan);
+      text-decoration: none;
+    }
+    .map-card {
+      background: rgba(5,15,5,0.8);
+      border: 1px solid rgba(163,255,0,0.3);
+      border-radius: 10px;
+      overflow: hidden;
+      min-height: 200px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .map-inner {
+      position: relative;
+      width: 100%;
+      height: 220px;
+    }
+    iframe.map-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      filter: grayscale(1) invert(1) hue-rotate(80deg) brightness(0.4);
+    }
+    .map-marker {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      z-index: 2;
+      filter: drop-shadow(0 0 8px var(--green));
+      animation: pulse-marker 2s ease-in-out infinite;
+    }
+    @keyframes pulse-marker {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.15); }
+    }
+    .map-controls {
+      position: absolute;
+      top: 12px; left: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 3;
+    }
+    .map-btn {
+      width: 28px; height: 28px;
+      background: rgba(10,25,10,0.9);
+      border: 1px solid rgba(163,255,0,0.3);
+      border-radius: 4px;
+      color: var(--green);
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-family: monospace;
+    }
+    .locate-card {
+      background: rgba(5,20,20,0.6);
+      border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-top: 20px;
+      grid-column: 2 / 4;
+    }
+    .locate-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 3px;
+      margin-bottom: 14px;
+    }
+    .locate-addr {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      line-height: 1.8;
+      color: var(--cyan);
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: #000;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 60px 48px 30px;
+    }
+    .footer-inner {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 50px;
+    }
+    .footer-brand-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--green);
+      font-style: italic;
+      margin-bottom: 16px;
+      letter-spacing: 2px;
+    }
+    .footer-brand-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .footer-col-title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .footer-links a {
+      font-size: 0.9rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .footer-links a:hover { color: var(--green); }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 900px) {
+      nav { padding: 16px 20px; }
+      section { padding: 70px 20px; }
+      .about-inner { grid-template-columns: 1fr; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .locate-card { grid-column: 1; }
+      .footer-inner { grid-template-columns: 1fr; }
+      .timeline-item.right { flex-direction: row; }
+      .timeline-line { left: 14px; }
+      .timeline-item { flex-direction: row !important; }
+      .timeline-empty { display: none; }
+      .hero-title { font-size: 3.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-grid"></div>
+  <div class="loader-corner tl"></div>
+  <div class="loader-corner tr"></div>
+  <div class="loader-corner bl"></div>
+  <div class="loader-corner br"></div>
+  <div class="loader-logo">⚡</div>
+  <div class="loader-title">HACKFIT 4.0</div>
+  <div class="loader-sdk">LOADING UNICORNSTUDIO SDK...</div>
+  <div class="loader-bar-wrap">
+    <div class="loader-bar" id="loaderBar"></div>
+  </div>
+  <div class="loader-pct" id="loaderPct">0% LOADED</div>
+  <div class="loader-dots">
+    <span></span><span></span><span></span>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <a href="#home" class="nav-logo">HACKF!T</a>
+  <ul class="nav-links">
+    <li><a href="#home">HOME</a></li>
+    <li><a href="#about">ABOUT</a></li>
+    <li><a href="#schedule">SCHEDULE</a></li>
+    <li><a href="#prizes">PR!ZES</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">REG!STER NOW ↗</a>
+</nav>
+
+<!-- HERO -->
+<section id="home">
+  <canvas id="matrix"></canvas>
+  <div class="hero-gradient"></div>
+  <div class="hero-content">
+    <h1 class="hero-title">
+      <span class="hack">HACK</span><span class="fit">F!T</span> <span class="ver">4.0</span>
+    </h1>
+    <p class="hero-sub">36 HOUR NATIONAL LEVEL HACKATHON</p>
+    <div class="hero-cards">
+      <div class="hero-card fade-up">
+        <div class="hero-card-label">PR!ZE POOL</div>
+        <div class="hero-card-value">₹ 60K</div>
+      </div>
+      <div class="hero-card fade-up" style="animation-delay:0.1s">
+        <div class="hero-card-label">MARK THE DATES</div>
+        <div class="hero-card-dates">
+          <span class="nums">6.7.8</span>
+          <span class="month">MARCH</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="scanline-divider">
+  <div class="scanline-line"></div>
+  <div class="scanline-dot"></div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="poly-bg">
+    <canvas class="poly-canvas" id="polyCanvas"></canvas>
+  </div>
+  <div class="about-inner">
+    <div class="about-left fade-up">
+      <div class="section-label">WHAT IS HACKFIT?</div>
+      <h2 class="about-title">BUILD BOLD.<br>SLEEP LATER.</h2>
+      <p class="about-text">HACKFIT IS A NATIONAL-LEVEL HACKATHON ORGANIZED BY THE DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING, FISAT, IN COLLABORATION WITH FISAT HORIZON CLUB, ACM STUDENT CHAPTER FISAT, AND FISAT FREE SOFTWARE CELL.</p>
+      <p class="about-text">BRINGING TOGETHER INNOVATORS, DEVELOPERS, AND PROBLEM-SOLVERS FROM ACROSS THE COUNTRY, HACKFIT IS A PLATFORM TO BUILD WITH LIKE-MINDED PEERS, AND PUSH THE BOUNDARIES OF CREATIVITY AND TECHNOLOGY.</p>
+      <div class="about-badges">
+        <div class="badge"><span class="badge-dot"></span> 36h Sprint</div>
+        <div class="badge"><span class="badge-dot cyan"></span> On-campus</div>
+        <div class="badge"><span class="badge-dot"></span> Team Size: 2-5</div>
+      </div>
+    </div>
+    <div class="about-terminal fade-up">
+      <div class="terminal-header">
+        <span class="terminal-title">Terminal</span>
+        <div class="terminal-btn"></div>
+      </div>
+      <div class="terminal-line"><span class="hash">#</span> Booting Hackfit core modules... [OK]</div>
+      <div class="terminal-line"><span class="hash">#</span> Syncing mentors... [OK]</div>
+      <div class="terminal-line"><span class="hash">#</span> Priming challenges + datasets...[DONE%]</div>
+      <div class="terminal-line"><span class="hash">#</span> Standing by for innovators...</div>
+      <div class="terminal-line typing"><span class="hash">#</span> ||||||||||||||||||||||||||||||||||||||||</div>
+    </div>
+  </div>
+</section>
+
+<div class="scanline-divider">
+  <div class="scanline-line"></div>
+  <div class="scanline-dot"></div>
+</div>
+
+<!-- PRIZES -->
+<section id="prizes">
+  <p class="prizes-label fade-up">PR!ZE POOL</p>
+  <div class="prizes-podium">
+    <div class="prize-card second fade-up">
+      <div class="trophy-icon green">🏆</div>
+      <div class="prize-rank green">2ND PLACE</div>
+      <div class="prize-amount green"><span>₹</span> 20,000</div>
+    </div>
+    <div class="prize-card first fade-up">
+      <div class="trophy-icon green">🏆</div>
+      <div class="prize-rank green">1ST PLACE - GRAND PR!ZE</div>
+      <div class="prize-amount green"><span>₹</span> 30,000</div>
+    </div>
+    <div class="prize-card third fade-up">
+      <div class="trophy-icon gold">🏆</div>
+      <div class="prize-rank gold">3RD PLACE</div>
+      <div class="prize-amount gold"><span>₹</span> 10,000</div>
+    </div>
+  </div>
+</section>
+
+<div class="scanline-divider">
+  <div class="scanline-line"></div>
+  <div class="scanline-dot"></div>
+</div>
+
+<!-- PROBLEM STATEMENTS -->
+<section id="about-tracks">
+  <div class="poly-bg">
+    <canvas class="poly-canvas" id="polyCanvas2"></canvas>
+  </div>
+  <div class="tracks-header fade-up">
+    <p class="tracks-label-sm">HACKATHON TRACKS</p>
+    <h2 class="tracks-title">Problem Statements</h2>
+    <p class="tracks-sub">Choose a challenge. Build something impactful. Innovate with purpose.</p>
+  </div>
+
+  <div class="track-card fade-up">
+    <div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:16px;">
+      <div class="track-num">1</div>
+      <h3 class="track-title">Bridging the Skill Gap in the Age of AI</h3>
+    </div>
+    <p class="track-desc">A growing skill gap exists between what learners demonstrate academically and the competencies required by industry. While AI tools have become integral to learning and project development, over-reliance on AI-generated outputs can limit hands-on understanding and make it difficult to accurately assess actual skills and readiness.<br><br>The challenge is to design a system that identifies skill gaps, evaluates true competency, and supports effective skill development aligned with current and emerging workforce needs. The solution should help individuals, educators, or institutions close these gaps and improve employability.</p>
+    <div class="track-tags">
+      <span class="track-tag">AI & Education</span>
+      <span class="track-tag">Skill Assessment</span>
+      <span class="track-tag">Employability</span>
+      <span class="track-tag">Workforce Readiness</span>
+    </div>
+  </div>
+
+  <div class="track-card fade-up">
+    <div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:16px;">
+      <div class="track-num">2</div>
+      <h3 class="track-title">Enterprise Sustainability through Smart Resource and Utility Management</h3>
+    </div>
+    <p class="track-desc">Large organizations consume vast amounts of energy, water, and materials, making sustainability a complex and critical challenge. Achieving measurable and continuous resource optimization at an enterprise scale requires intelligent, data-driven approaches.<br><br>The challenge is to design an open-source, scalable solution that enables large enterprises to monitor, analyze, and optimize resource usage, supporting long-term sustainability goals. Participants are expected to identify a specific enterprise sustainability challenge, study real-world practices, and develop a functional system that drives responsible resource usage and informed decision-making.</p>
+    <div class="track-tags">
+      <span class="track-tag">Sustainability</span>
+      <span class="track-tag">Resource Management</span>
+      <span class="track-tag">Enterprise Scale</span>
+      <span class="track-tag">Open Source</span>
+      <span class="track-tag">Data-Driven</span>
+    </div>
+  </div>
+
+  <div class="track-card fade-up">
+    <div style="display:flex;align-items:flex-start;gap:20px;margin-bottom:16px;">
+      <div class="track-num">3</div>
+      <h3 class="track-title">Game-Based Learning for Social (also called as sustainable) Development Goals</h3>
+    </div>
+    <p class="track-desc">Awareness and understanding of social development challenges often remain limited when conveyed through traditional instructional methods. Engaging, interactive approaches are needed to help learners meaningfully understand real-world social issues and the impact of individual and collective actions.<br><br>The challenge is to design and develop a game-based system that educates players about Social Development Goals by embedding real-world scenarios, decision-making, and consequences within gameplay. The solution should promote learning through interaction, encourage critical thinking, and create awareness of social responsibility while maintaining engagement and playability.</p>
+    <div class="track-tags">
+      <span class="track-tag">Game-Based Learning</span>
+      <span class="track-tag">Social Impact</span>
+      <span class="track-tag">SDGs</span>
+      <span class="track-tag">Interactive Education</span>
+      <span class="track-tag">Awareness</span>
+    </div>
+  </div>
+
+  <p class="track-footer-text">CODE • COLLABORATE • COMPETE</p>
+</section>
+
+<div class="scanline-divider">
+  <div class="scanline-line"></div>
+  <div class="scanline-dot"></div>
+</div>
+
+<!-- SCHEDULE -->
+<section id="schedule">
+  <div class="schedule-header fade-up">
+    <p class="schedule-label-sm">EXECUTION PLAN</p>
+    <h2 class="schedule-title">HOW HACKF!T UNFOLDS</h2>
+  </div>
+  <div class="timeline">
+    <div class="timeline-line"></div>
+
+    <div class="timeline-item left fade-up">
+      <div class="timeline-content">
+        <div class="timeline-card">
+          <p class="timeline-phase">Phase 1</p>
+          <h3 class="timeline-phase-title green">Early Bird Registration</h3>
+          <p class="timeline-phase-desc">Lock in your team at the best rates and secure your spot before the rush. Limited slots — register fast!</p>
+        </div>
+      </div>
+      <div class="timeline-dot"></div>
+      <div class="timeline-empty"></div>
+    </div>
+
+    <div class="timeline-item right fade-up">
+      <div class="timeline-content">
+        <div class="timeline-card">
+          <div class="timeline-closed">CLOSED</div>
+          <p class="timeline-phase">Phase 2</p>
+          <h3 class="timeline-phase-title">Normal Registration</h3>
+          <p class="timeline-phase-desc">Open to all teams. Form your crew, pick a track, and get your repo ready before the final countdown.</p>
+        </div>
+      </div>
+      <div class="timeline-dot"></div>
+      <div class="timeline-empty"></div>
+    </div>
+
+    <div class="timeline-item left fade-up">
+      <div class="timeline-content">
+        <div class="timeline-card">
+          <p class="timeline-phase">Phase 3</p>
+          <h3 class="timeline-phase-title green">Hackfit Weekend</h3>
+          <p class="timeline-phase-desc">March 6, 6:00 PM – March 8, 6:00 AM. 36 hours of non-stop building, shipping, and demoing to the jury.</p>
+        </div>
+      </div>
+      <div class="timeline-dot"></div>
+      <div class="timeline-empty"></div>
+    </div>
+  </div>
+</section>
+
+<div class="scanline-divider">
+  <div class="scanline-line"></div>
+  <div class="scanline-dot"></div>
+</div>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="faq-bg-img"></div>
+  <div class="faq-inner">
+    <div class="faq-label-sm fade-up">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      FAQ MATRIX
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    </div>
+    <h2 class="faq-title fade-up">HACKF!T INTEL BRIEFING</h2>
+    <p class="faq-sub fade-up">Everything teams keep pinging us about the sprint, power, and prize stack—decoded in one signal burst.</p>
+
+    <div class="faq-list fade-up">
+      <div class="faq-item open">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          WHO CAN REG!STER FOR HACKF!T 2026?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <div class="faq-a">HackFit is open exclusively to undergraduate and postgraduate students currently enrolled in recognized colleges or universities. Participants must carry a valid student ID. Mixed teams across different colleges are welcome, provided all members are eligible students and ready to build on-site.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          WHAT TRACKS ARE IN THE 2026 ED!T!ON?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <div class="faq-a">HackFit 2026 features three tracks: Bridging the Skill Gap in the Age of AI, Enterprise Sustainability through Smart Resource and Utility Management, and Game-Based Learning for Social Development Goals. Each track comes with a detailed problem statement and judging criteria.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          HOW LARGE CAN EACH SQUAD BE?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <div class="faq-a">Teams can have between 2 to 5 members. Solo participation is not allowed. Cross-college teams are encouraged — diversity in skills and backgrounds makes for stronger solutions.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          WHAT SUPPORT IS AVAILABLE ON-SITE?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <div class="faq-a">On-site support includes dedicated mentors for each track, technical infrastructure, food and refreshments throughout the 36-hour sprint, and a helpdesk for any logistical needs. Workstations and power outlets will be available at all times.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          HOW ARE PROJECTS JUDGED?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+        </button>
+        <div class="faq-a">Projects are judged on innovation and creativity, technical complexity, real-world impact, completeness and presentation quality, and track alignment. Each team will demo their project to a panel of industry experts and faculty evaluators at the end of the sprint.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="scanline-divider">
+  <div class="scanline-line"></div>
+  <div class="scanline-dot"></div>
+</div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="contact-header fade-up">
+    <p class="section-label">REACH OUT</p>
+    <h2 class="section-title">Contact</h2>
+    <p style="font-size:0.95rem;color:var(--muted);margin-top:10px;">Questions about HackFit? Get in touch with our coordinators.</p>
+  </div>
+  <div class="contact-grid">
+    <div class="contact-card fade-up">
+      <div class="contact-name">Hisham Haskar</div>
+      <div class="contact-divider"></div>
+      <div class="contact-role">CHAIRPERSON, ACM</div>
+      <a href="tel:+918078313514" class="contact-phone">+91 8078313514</a>
+    </div>
+    <div class="contact-card fade-up">
+      <div class="contact-name">Abhijay Prakash</div>
+      <div class="contact-divider"></div>
+      <div class="contact-role">CHAIRPERSON, FHC</div>
+      <a href="tel:+917356252747" class="contact-phone">+91 7356252747</a>
+    </div>
+    <div class="map-card fade-up">
+      <div class="map-inner">
+        <iframe class="map-frame"
+          src="https://www.openstreetmap.org/export/embed.html?bbox=76.56,10.18,76.58,10.20&layer=mapnik&marker=10.190,76.570"
+          allowfullscreen>
+        </iframe>
+        <div class="map-controls">
+          <div class="map-btn">+</div>
+          <div class="map-btn">−</div>
+          <div class="map-btn">⊕</div>
+        </div>
+        <div class="map-marker">⚡</div>
+      </div>
+    </div>
+    <div style="display:none;" class="contact-card fade-up"><!-- spacer --></div>
+    <div class="locate-card fade-up">
+      <p class="locate-title">LOCATE US</p>
+      <p class="locate-addr">
+        Federal Institute of Science And Technology (FISAT)<br>
+        Hormis Nagar, Mookkannoor, Angamaly, Kerala 683577
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <p class="footer-brand-title">HACKF!T 4.0</p>
+      <p class="footer-brand-desc">A high-energy hackathon focused on innovation, cutting-edge technology and real-world impact.</p>
+    </div>
+    <div>
+      <p class="footer-col-title">Navigate</p>
+      <ul class="footer-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#schedule">Schedule</a></li>
+        <li><a href="#prizes">Prizes</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <p class="footer-col-title">Connect</p>
+      <ul class="footer-links">
+        <li><a href="#">Instagram</a></li>
+        <li><a href="#">LinkedIn</a></li>
+        <li><a href="#">GitHub</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 HACKFIT 4.0</span>
+    <span>All Rights Reserved.</span>
+  </div>
+</footer>
+
+<script>
+  /* ===== LOADER ===== */
+  const bar = document.getElementById('loaderBar');
+  const pct = document.getElementById('loaderPct');
+  let progress = 0;
+  const interval = setInterval(() => {
+    progress += Math.random() * 8 + 2;
+    if (progress >= 100) {
+      progress = 100;
+      clearInterval(interval);
+      setTimeout(() => {
+        document.getElementById('loader').style.opacity = '0';
+        document.getElementById('loader').style.transition = 'opacity 0.6s';
+        setTimeout(() => document.getElementById('loader').style.display = 'none', 600);
+      }, 400);
+    }
+    bar.style.width = progress + '%';
+    pct.textContent = Math.floor(progress) + '% LOADED';
+  }, 80);
+
+  /* ===== MATRIX RAIN ===== */
+  const canvas = document.getElementById('matrix');
+  const ctx = canvas.getContext('2d');
+  function resizeMatrix() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeMatrix();
+  window.addEventListener('resize', resizeMatrix);
+  const cols = Math.floor(window.innerWidth / 18);
+  const drops = Array(cols).fill(1);
+  const chars = 'アイウエオカキクケコ01ABCDEF</>{}[]';
+  function drawMatrix() {
+    ctx.fillStyle = 'rgba(5,10,5,0.05)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#0f0';
+    ctx.font = '13px Share Tech Mono, monospace';
+    drops.forEach((y, i) => {
+      const ch = chars[Math.floor(Math.random() * chars.length)];
+      ctx.fillText(ch, i * 18, y * 18);
+      if (y * 18 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+      drops[i]++;
+    });
+  }
+  setInterval(drawMatrix, 50);
+
+  /* ===== POLYGON NETWORK ===== */
+  function initPoly(canvasId) {
+    const c = document.getElementById(canvasId);
+    if (!c) return;
+    const cx = c.getContext('2d');
+    function resize() {
+      c.width = c.offsetWidth;
+      c.height = c.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    const pts = Array.from({length: 40}, () => ({
+      x: Math.random() * c.width,
+      y: Math.random() * c.height,
+      vx: (Math.random()-0.5)*0.4,
+      vy: (Math.random()-0.5)*0.4
+    }));
+    function draw() {
+      cx.clearRect(0,0,c.width,c.height);
+      pts.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > c.width) p.vx *= -1;
+        if (p.y < 0 || p.y > c.height) p.vy *= -1;
+      });
+      for (let i=0;i<pts.length;i++) {
+        for (let j=i+1;j<pts.length;j++) {
+          const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y;
+          const dist=Math.sqrt(dx*dx+dy*dy);
+          if (dist < 120) {
+            cx.beginPath();
+            cx.moveTo(pts[i].x,pts[i].y);
+            cx.lineTo(pts[j].x,pts[j].y);
+            cx.strokeStyle = `rgba(163,255,0,${0.4*(1-dist/120)})`;
+            cx.lineWidth = 0.8;
+            cx.stroke();
+          }
+        }
+      }
+      pts.forEach(p => {
+        cx.beginPath();
+        cx.arc(p.x,p.y,2,0,Math.PI*2);
+        cx.fillStyle='rgba(163,255,0,0.5)';
+        cx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+  initPoly('polyCanvas');
+  initPoly('polyCanvas2');
+
+  /* ===== FAQ TOGGLE ===== */
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  /* ===== SCROLL FADE ===== */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
